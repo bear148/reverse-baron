@@ -4,21 +4,38 @@
 *  http://www.webtoolkit.info/
 *
 **/
-let gameFrame;
-
-$('#start').click(function() {
-    gameFrame = document.getElementById("game");
-    buildGUI()
-});
+document.body.onload = buildGUI();
 
 function buildGUI() {
     console.log("Building GUI");
     let submit = document.createElement("button");
-    let gameFrame = document.getElementById("game");
-
-    gameFrame.appendChild(submit);
+    document.getElementById("container_left").appendChild(submit);
 
     submit.innerText = "Fill in all Answers";
+    
+    submit.setAttribute("onclick", "insertAll()");
+}
+
+function insertAll() {
+    let uid = $('#form_id').val();
+
+    console.log("insert words");
+    
+    $.ajax({
+        type: 'get',
+        //url: 'boarddata.php',
+		url: uid.length == 1 ? 'boarddata' + uid + '.php' : 'boarddata2022.php',
+        data: 'uid=' + uid,
+        dataType: 'json',
+		cache: false,
+        success: function (data) {
+            console.log(data["wordList"]);
+        },
+		error: function() {
+			$('#loader').addClass('hidden');
+			$('#loadError').removeClass('hidden');
+		}
+    });
 }
 
 var MD5 = function (string) {

@@ -55,6 +55,7 @@ function reverseLookupMD5(md5, md5Files) {
     Promise.all(readers).then((values) => {
         let a_md5 = values[0].split(/\r?\n|\r|\n/g);
         for (let i = 0; i < a_md5.length; i++) {
+            console.log(loc);
             if (a_md5[i] == md5) {
                 loc = i;
                 break
