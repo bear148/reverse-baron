@@ -42,7 +42,12 @@ def getWordInfo(word):
 #############################################################
 # EXACT REPLICATION OF WORDTWIST MD5 ENCRYPTION IN PYTHON   #
 # MAIN FUNCTION IS `md5(string)` STRING IS ALWAYS UPPERCASE #
-#############################################################  
+############################################################# 
+
+# Example Usage of MD5 hashing function: MD5("HELLO")
+#                                               ^- Always upper case!
+# The capitalization of the word in the translateCondensedIntoMD5 is handled automatically, but manual usage of the
+# md5 function required you type in the word in all capitals.
 
 def rotate_left(value, shift_bits):
     return (value << shift_bits) | (value >> (32 - shift_bits))
@@ -207,5 +212,3 @@ def md5(string):
         d = add_unsigned(d, dd)
 
     return (word_to_hex(a) + word_to_hex(b) + word_to_hex(c) + word_to_hex(d)).lower()
-
-getWordInfo("length")
