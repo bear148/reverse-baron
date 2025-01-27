@@ -4,8 +4,8 @@ body {
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
-.timestamp {
-    width: fit-content;
+.timestamp, .md5-reverse {
+    max-width: 650px;
     padding: 15px;
     border: 2px inset black;
 }

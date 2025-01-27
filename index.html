@@ -18,6 +18,12 @@
         <p>Full Format Example: <em>Thu Jan 23 2025 20:32:59 GMT-0800 (Pacific Standard Time)</em></p>
         <p>Final Timestamp: <span id="final_time_t"></span></p>
     </div>
+    <div class="md5-reverse">
+        <input id="md5_r" type="text" placeholder="Convert from MD5">
+        <button type="submit" onclick="reverseLookupMD5(document.getElementById('md5_r').value, document.getElementById('md5_file').files)">Submit</button>
+        <input id="md5_file" type="file" multiple>
+        <p>Word: <span id="md5_reversed"></span></p>
+    </div>
     <p>Created by: <a href="https://bear148.github.io">Michael S.</a> & <a href="https://parkerhunt.me/">Parker H.</a> (2025)</p>
 </body>
 </html>
