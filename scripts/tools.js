@@ -46,6 +46,7 @@ function readFile(file) {
 function reverseLookupMD5(md5, md5Files) {
     let readers = [];
     let out = document.getElementById("md5_reversed");
+    let loc = 0; // LOC is the line number starting at 0, so the actual number is loc + 1
 
     for(let i = 0;i < md5Files.length;i++){
         readers.push(readFile(md5Files[i]));
@@ -53,7 +54,6 @@ function reverseLookupMD5(md5, md5Files) {
 
     Promise.all(readers).then((values) => {
         let a_md5 = values[0].split(/\r?\n|\r|\n/g);
-        let loc = 0; // LOC is the line number starting at 0, so the actual number is loc + 1
         for (let i = 0; i < a_md5.length; i++) {
             if (a_md5[i] == md5) {
                 loc = i;

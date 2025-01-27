@@ -4,13 +4,21 @@
 *  http://www.webtoolkit.info/
 *
 **/
+let gameFrame;
 
-document.body.onload = buildGUI;
-let gameFrame = document.getElementById("game");
+$('#start').click(function() {
+    gameFrame = document.getElementById("game");
+    buildGUI()
+});
 
 function buildGUI() {
+    console.log("Building GUI");
     let submit = document.createElement("button");
+    let gameFrame = document.getElementById("game");
+
     gameFrame.appendChild(submit);
+
+    submit.innerText = "Fill in all Answers";
 }
 
 var MD5 = function (string) {
