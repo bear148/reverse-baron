@@ -8,3 +8,10 @@ The usage of `refine.py` is not exactly streamlined. To use the different utilit
 - `condenseAllPossibleWords()` This sorts all of the words in the full dictionary file and only outputs the ones to the filtered words file that fit the criteria for a valid word guess.
 - `translateCondensedIntoMD5()` This translates every single word in the sorted word file into MD5. Once again, when these words are encrypted in MD5, they are not encrypted using their original casing. Every word is fully capitalized and then converted into MD5 before being outputted into the file.
 - `getWordInfo(word)` This gets the line number of the inputted word in the sorted word file, and then the MD5 code for the inputted word.
+
+The usage of functions written in the `tools.js` file are all usable on the [Website](https://bear148.github.io/reverse-baron).
+
+## Todo
+ - [ ] CLI for Python tools
+ - [ ] Automatic decryption of words when the game is created.
+    - [ ] Automatic input of reversed words into answer box.
