@@ -1,9 +1,3 @@
-/**
-*
-*  MD5 (Message-Digest Algorithm)
-*  http://www.webtoolkit.info/
-*
-**/
 document.body.onload = buildGUI();
 
 function buildGUI() {
@@ -59,6 +53,7 @@ function wordHandle(data, file) {
 async function findAllWords(wordList, dictionaryFile) {
     const foundWords = new Map();
     const dictionary = await readFile(dictionaryFile);
+    let notFound = [];
     
     // Pre-process dictionary into length-based buckets
     const wordsByLength = new Map();
@@ -74,7 +69,7 @@ async function findAllWords(wordList, dictionaryFile) {
     for (let md5 in wordList) {
         const len = wordList[md5].len;
         const possibleWords = wordsByLength.get(len);
-        
+
         if (possibleWords) {
             for (let [word, hash] of possibleWords) {
                 if (hash === md5) {
@@ -82,12 +77,28 @@ async function findAllWords(wordList, dictionaryFile) {
                     window.foundWords++;
                     console.log(`Found word: ${word} | Hash: ${md5}`);
                     console.log(`Cracking progress: ${window.foundWords}/${window.totalWords}`);
+                    console.log(`Word Length: ${len}`);
                     break;
                 }
             }
         }
     }
-    
+
+    for (let md5 in wordList) {
+        for (let fMD5 of foundWords) {
+            if (md5 != fMD5) {
+                notFound.push(md5);
+            }
+        }
+    }
+
+    console.log(`Words not found: ${notFound}`);
+
+    // for (let [word, hash] of Object.keys(wordList)) {
+    //     for (let foundHash in foundWords) {
+    //         if ()
+    //     }
+    // }
     return foundWords;
 }
 
@@ -106,12 +117,46 @@ async function submitWords(foundWords) {
     console.log("All words submitted!");
 }
 
-var MD5 = function (string) {
+function readFile(file) {
+    return new Promise(function(resolve, reject) {
+        let fr = new FileReader();
 
+        fr.onload = function() {
+            resolve(JSON.parse(fr.result));
+        }
+
+        fr.onerror = function() {
+            reject(fr);
+        }
+
+        fr.readAsText(file);
+    })
+}
+
+function reverseLookupMD5(md5, dictionaryFile) {
+    readFile(dictionaryFile).then((dictionary) => {
+        // Find the word by looking up the hash
+        for (let word in dictionary) {
+            if (dictionary[word] === md5) {
+                $('#word').val(word);
+                $("#tmpgame").submit();
+                window.foundWords++;
+                console.log(`Word: ${word} | Hash: ${md5}`);
+                console.log(`Progress: ${window.foundWords}/${window.totalWords} (${window.totalWords - window.foundWords} remaining)`);
+                break;
+            }
+        }
+    }).catch(err => {
+        console.error("Error reading dictionary:", err);
+    });
+}
+
+var MD5 = function (string) {
+ 
     function RotateLeft(lValue, iShiftBits) {
         return (lValue<<iShiftBits) | (lValue>>>(32-iShiftBits));
     }
-
+ 
     function AddUnsigned(lX,lY) {
         var lX4,lY4,lX8,lY8,lResult;
         lX8 = (lX & 0x80000000);
@@ -132,32 +177,32 @@ var MD5 = function (string) {
             return (lResult ^ lX8 ^ lY8);
         }
      }
-
+ 
      function F(x,y,z) { return (x & y) | ((~x) & z); }
      function G(x,y,z) { return (x & z) | (y & (~z)); }
      function H(x,y,z) { return (x ^ y ^ z); }
     function I(x,y,z) { return (y ^ (x | (~z))); }
-
+ 
     function FF(a,b,c,d,x,s,ac) {
         a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
         return AddUnsigned(RotateLeft(a, s), b);
     };
-
+ 
     function GG(a,b,c,d,x,s,ac) {
         a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
         return AddUnsigned(RotateLeft(a, s), b);
     };
-
+ 
     function HH(a,b,c,d,x,s,ac) {
         a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
         return AddUnsigned(RotateLeft(a, s), b);
     };
-
+ 
     function II(a,b,c,d,x,s,ac) {
         a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
         return AddUnsigned(RotateLeft(a, s), b);
     };
-
+ 
     function ConvertToWordArray(string) {
         var lWordCount;
         var lMessageLength = string.length;
@@ -180,7 +225,7 @@ var MD5 = function (string) {
         lWordArray[lNumberOfWords-1] = lMessageLength>>>29;
         return lWordArray;
     };
-
+ 
     function WordToHex(lValue) {
         var WordToHexValue="",WordToHexValue_temp="",lByte,lCount;
         for (lCount = 0;lCount<=3;lCount++) {
@@ -190,15 +235,15 @@ var MD5 = function (string) {
         }
         return WordToHexValue;
     };
-
+ 
     function Utf8Encode(string) {
         string = string.replace(/\r\n/g,"\n");
         var utftext = "";
-
+ 
         for (var n = 0; n < string.length; n++) {
-
+ 
             var c = string.charCodeAt(n);
-
+ 
             if (c < 128) {
                 utftext += String.fromCharCode(c);
             }
@@ -211,25 +256,25 @@ var MD5 = function (string) {
                 utftext += String.fromCharCode(((c >> 6) & 63) | 128);
                 utftext += String.fromCharCode((c & 63) | 128);
             }
-
+ 
         }
-
+ 
         return utftext;
     };
-
+ 
     var x=Array();
     var k,AA,BB,CC,DD,a,b,c,d;
     var S11=7, S12=12, S13=17, S14=22;
     var S21=5, S22=9 , S23=14, S24=20;
     var S31=4, S32=11, S33=16, S34=23;
     var S41=6, S42=10, S43=15, S44=21;
-
+ 
     string = Utf8Encode(string);
-
+ 
     x = ConvertToWordArray(string);
-
+ 
     a = 0x67452301; b = 0xEFCDAB89; c = 0x98BADCFE; d = 0x10325476;
-
+ 
     for (k=0;k<x.length;k+=16) {
         AA=a; BB=b; CC=c; DD=d;
         a=FF(a,b,c,d,x[k+0], S11,0xD76AA478);
@@ -301,42 +346,8 @@ var MD5 = function (string) {
         c=AddUnsigned(c,CC);
         d=AddUnsigned(d,DD);
     }
-
+ 
     var temp = WordToHex(a)+WordToHex(b)+WordToHex(c)+WordToHex(d);
-
+ 
     return temp.toLowerCase();
-}
-
-function readFile(file) {
-    return new Promise(function(resolve, reject) {
-        let fr = new FileReader();
-
-        fr.onload = function() {
-            resolve(JSON.parse(fr.result));
-        }
-
-        fr.onerror = function() {
-            reject(fr);
-        }
-
-        fr.readAsText(file);
-    })
-}
-
-function reverseLookupMD5(md5, dictionaryFile) {
-    readFile(dictionaryFile).then((dictionary) => {
-        // Find the word by looking up the hash
-        for (let word in dictionary) {
-            if (dictionary[word] === md5) {
-                $('#word').val(word);
-                $("#tmpgame").submit();
-                window.foundWords++;
-                console.log(`Word: ${word} | Hash: ${md5}`);
-                console.log(`Progress: ${window.foundWords}/${window.totalWords} (${window.totalWords - window.foundWords} remaining)`);
-                break;
-            }
-        }
-    }).catch(err => {
-        console.error("Error reading dictionary:", err);
-    });
 }
