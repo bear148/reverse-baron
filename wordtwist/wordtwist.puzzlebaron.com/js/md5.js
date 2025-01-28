@@ -9,17 +9,25 @@ document.body.onload = buildGUI();
 function buildGUI() {
     console.log("Building GUI");
     let submit = document.createElement("button");
+	let files = document.createElement("input");
+
     document.getElementById("container_left").appendChild(submit);
+    document.getElementById("container_left").appendChild(files);
 
     submit.innerText = "Fill in all Answers";
+    files.innerText = "Dictionary Files";
     
-    submit.setAttribute("onclick", "insertAll()");
+    submit.setAttribute("onclick", "insertAll(document.getElementById('dictionaryInput').files)");
+
+    files.setAttribute("type", "file")
+    files.setAttribute("multiple", "");
+    files.setAttribute("id", "dictionaryInput");
 }
 
-function insertAll() {
+function insertAll(files) {
     let uid = $('#form_id').val();
 
-    console.log("insert words");
+    console.log("Inserting Words...");
     
     $.ajax({
         type: 'get',
@@ -29,13 +37,21 @@ function insertAll() {
         dataType: 'json',
 		cache: false,
         success: function (data) {
-            console.log(data["wordList"]);
+            wordHandle(data, files);
         },
 		error: function() {
 			$('#loader').addClass('hidden');
 			$('#loadError').removeClass('hidden');
 		}
     });
+}
+
+function wordHandle(data, files) {
+    let wordList = data.wordList;
+
+    for (k in wordList) {
+        reverseLookupMD5(k, files);
+    }
 }
 
 var MD5 = function (string) {
@@ -259,7 +275,7 @@ function readFile(file) {
 // second value in the array is the file with all the words and corresponding line number for the MD5 code.
 function reverseLookupMD5(md5, md5Files) {
     let readers = [];
-    let out = document.getElementById("md5_reversed");
+    //let out = document.getElementById("md5_reversed");
 
     for(let i = 0;i < md5Files.length;i++){
         readers.push(readFile(md5Files[i]));
@@ -276,7 +292,8 @@ function reverseLookupMD5(md5, md5Files) {
         }
 
         let a_w = values[1].split(/\r?\n|\r|\n/g);
-        out.innerHTML = a_w[loc];
+        $('#word').val(a_w[loc]);
+        $("#tmpgame").submit();
         console.log(`Word: ${a_w[loc]} | Line: ${loc+1}`);
     });
 }
