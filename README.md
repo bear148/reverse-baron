@@ -11,6 +11,11 @@ The usage of `refine.py` is not exactly streamlined. To use the different utilit
 
 The usage of functions written in the `tools.js` file are all usable on the [Website](https://bear148.github.io/reverse-baron).
 
+## Bookmarklet
+```javascript
+javascript:(function(){const e='https://raw.githubusercontent.com/bear148/reverse-baron/main/wordtwist/wordtwist.puzzlebaron.com/js/md5.js';fetch(e).then(e=>e.text()).then(e=>{const t=Array.from(document.getElementsByTagName('script')).find(e=>e.src.includes('md5.js'));t&&t.remove();const n=document.createElement('script');n.type='text/javascript',n.text=e,document.head.appendChild(n),console.log('MD5 replaced')}).catch(e=>console.error('MD5 replace failed:',e))})();
+```
+
 ## Todo
  - [ ] CLI for Python tools
  - [ ] Automatic decryption of words when the game is created.
