@@ -9,49 +9,101 @@ document.body.onload = buildGUI();
 function buildGUI() {
     console.log("Building GUI");
     let submit = document.createElement("button");
-	let files = document.createElement("input");
+    let files = document.createElement("input");
 
     document.getElementById("container_left").appendChild(submit);
     document.getElementById("container_left").appendChild(files);
 
     submit.innerText = "Fill in all Answers";
-    files.innerText = "Dictionary Files";
+    files.innerText = "Dictionary File";
     
-    submit.setAttribute("onclick", "insertAll(document.getElementById('dictionaryInput').files)");
+    submit.setAttribute("onclick", "insertAll(document.getElementById('dictionaryInput').files[0])");
 
-    files.setAttribute("type", "file")
-    files.setAttribute("multiple", "");
+    files.setAttribute("type", "file");
     files.setAttribute("id", "dictionaryInput");
 }
 
-function insertAll(files) {
+function insertAll(file) {
     let uid = $('#form_id').val();
-
-    console.log("Inserting Words...");
+    console.log("Starting word lookup process...");
     
     $.ajax({
         type: 'get',
-        //url: 'boarddata.php',
-		url: uid.length == 1 ? 'boarddata' + uid + '.php' : 'boarddata2022.php',
+        url: uid.length == 1 ? 'boarddata' + uid + '.php' : 'boarddata2022.php',
         data: 'uid=' + uid,
         dataType: 'json',
-		cache: false,
+        cache: false,
         success: function (data) {
-            wordHandle(data, files);
+            wordHandle(data, file);
         },
-		error: function() {
-			$('#loader').addClass('hidden');
-			$('#loadError').removeClass('hidden');
-		}
+        error: function() {
+            $('#loader').addClass('hidden');
+            $('#loadError').removeClass('hidden');
+        }
     });
 }
 
-function wordHandle(data, files) {
+function wordHandle(data, file) {
     let wordList = data.wordList;
+    console.log(`Total words to find: ${Object.keys(wordList).length}`);
+    window.totalWords = Object.keys(wordList).length;
+    window.foundWords = 0;
+    window.submittedWords = 0;
 
-    for (k in wordList) {
-        reverseLookupMD5(k, files);
+    findAllWords(wordList, file).then(foundWords => {
+        console.log("All words found! Starting submission...");
+        submitWords(foundWords);
+    });
+}
+
+async function findAllWords(wordList, dictionaryFile) {
+    const foundWords = new Map();
+    const dictionary = await readFile(dictionaryFile);
+    
+    // Pre-process dictionary into length-based buckets
+    const wordsByLength = new Map();
+    for (let word in dictionary) {
+        const len = word.length;
+        if (!wordsByLength.has(len)) {
+            wordsByLength.set(len, new Map());
+        }
+        wordsByLength.get(len).set(word, dictionary[word]);
     }
+    
+    // Faster lookup using length filter
+    for (let md5 in wordList) {
+        const len = wordList[md5].len;
+        const possibleWords = wordsByLength.get(len);
+        
+        if (possibleWords) {
+            for (let [word, hash] of possibleWords) {
+                if (hash === md5) {
+                    foundWords.set(md5, word);
+                    window.foundWords++;
+                    console.log(`Found word: ${word} | Hash: ${md5}`);
+                    console.log(`Cracking progress: ${window.foundWords}/${window.totalWords}`);
+                    break;
+                }
+            }
+        }
+    }
+    
+    return foundWords;
+}
+
+async function submitWords(foundWords) {
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    
+    for (let [md5, word] of foundWords) {
+        $('#word').val(word);
+        $("#tmpgame").submit();
+        window.submittedWords++;
+        console.log(`Submitted: ${word}`);
+        console.log(`Submission progress: ${window.submittedWords}/${window.totalWords}`);
+        // await delay(100); // Small delay between submissions to prevent overload
+    }
+    
+    console.log("All words submitted!");
 }
 
 var MD5 = function (string) {
@@ -260,40 +312,31 @@ function readFile(file) {
         let fr = new FileReader();
 
         fr.onload = function() {
-            resolve(fr.result);
+            resolve(JSON.parse(fr.result));
         }
 
         fr.onerror = function() {
-            resolve(fr);
+            reject(fr);
         }
 
         fr.readAsText(file);
     })
 }
 
-// md5Files is an array where the first value in the array is the md5File containing all of the md5Codes, and the
-// second value in the array is the file with all the words and corresponding line number for the MD5 code.
-function reverseLookupMD5(md5, md5Files) {
-    let readers = [];
-    //let out = document.getElementById("md5_reversed");
-
-    for(let i = 0;i < md5Files.length;i++){
-        readers.push(readFile(md5Files[i]));
-    }
-
-    Promise.all(readers).then((values) => {
-        let a_md5 = values[0].split(/\r?\n|\r|\n/g);
-        let loc = 0; // LOC is the line number starting at 0, so the actual number is loc + 1
-        for (let i = 0; i < a_md5.length; i++) {
-            if (a_md5[i] == md5) {
-                loc = i;
-                break
+function reverseLookupMD5(md5, dictionaryFile) {
+    readFile(dictionaryFile).then((dictionary) => {
+        // Find the word by looking up the hash
+        for (let word in dictionary) {
+            if (dictionary[word] === md5) {
+                $('#word').val(word);
+                $("#tmpgame").submit();
+                window.foundWords++;
+                console.log(`Word: ${word} | Hash: ${md5}`);
+                console.log(`Progress: ${window.foundWords}/${window.totalWords} (${window.totalWords - window.foundWords} remaining)`);
+                break;
             }
         }
-
-        let a_w = values[1].split(/\r?\n|\r|\n/g);
-        $('#word').val(a_w[loc]);
-        $("#tmpgame").submit();
-        console.log(`Word: ${a_w[loc]} | Line: ${loc+1}`);
+    }).catch(err => {
+        console.error("Error reading dictionary:", err);
     });
 }
