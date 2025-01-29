@@ -17,7 +17,7 @@ function buildGUI() {
     submit.innerText = "Fill in all Answers";
     files.innerText = "Dictionary Files";
     
-    submit.setAttribute("onclick", "insertAll(document.getElementById('dictionaryInput').files)");
+    submit.setAttribute("onclick", "insertAll(document.getElementById('dictionaryInput').files[0])");
 
     files.setAttribute("type", "file")
     files.setAttribute("multiple", "");
@@ -46,16 +46,71 @@ function insertAll(files) {
     });
 }
 
-function wordHandle(data, files) {
+function wordHandle(data, file) {
     let wordList = data.wordList;
-    let readers = [];
 
-    for(let i = 0;i < files.length;i++){
-        readers.push(readFile(files[i]));
+    findAllWords(wordList, file).then(foundWords => {
+        console.log("All words found! Starting submission...");
+        submitAllWords(foundWords);
+    });
+}
+
+async function findAllWords(wordList, dictionaryFile) {
+    const foundWords = new Map();
+    const notFound = new Set();
+    const dictionary = await readFile(dictionaryFile);
+
+    // Pre-process dictionary into length-based buckets
+    const wordsByLength = new Map();
+    for (const word in dictionary) {
+        const len = word.length;
+        if (!wordsByLength.has(len)) {
+            wordsByLength.set(len, new Map());
+        }
+        wordsByLength.get(len).set(dictionary[word], word); // Reverse map for faster lookup
     }
 
-    for (k in wordList) {
-        reverseLookupMD5(k, readers);
+    // Check each MD5 hash in wordList
+    for (const md5 in wordList) {
+        const len = wordList[md5].len;
+        const possibleWords = wordsByLength.get(len);
+
+        if (possibleWords && possibleWords.has(md5)) {
+            const word = possibleWords.get(md5);
+            foundWords.set(md5, word);
+            window.foundWords++;
+            console.log(`Found word: ${word} | Hash: ${md5}`);
+            console.log(`Cracking progress: ${window.foundWords}/${window.totalWords}`);
+            console.log(`Word Length: ${len}`);
+        } else {
+            notFound.add(md5 + "\n");
+        }
+    }
+
+    console.log(`Words not found: ${[...notFound]}`);
+    return foundWords;
+}
+
+function readFile(file) {
+    return new Promise(function(resolve, reject) {
+        let fr = new FileReader();
+
+        fr.onload = function() {
+            resolve(JSON.parse(fr.result));
+        }
+
+        fr.onerror = function() {
+            resolve(fr);
+        }
+
+        fr.readAsText(file);
+    })
+}
+
+function submitAllWords(foundWords) {
+    for(let [md5, word] of foundWords) {
+        $('#word').val(word);
+        $("#tmpgame").submit();
     }
 }
 
@@ -258,37 +313,4 @@ var MD5 = function (string) {
     var temp = WordToHex(a)+WordToHex(b)+WordToHex(c)+WordToHex(d);
 
     return temp.toLowerCase();
-}
-
-function readFile(file) {
-    return new Promise(function(resolve, reject) {
-        let fr = new FileReader();
-
-        fr.onload = function() {
-            resolve(fr.result);
-        }
-
-        fr.onerror = function() {
-            resolve(fr);
-        }
-
-        fr.readAsText(file);
-    })
-}
-
-let finalWords = [];
-// md5Files is an array where the first value in the array is the md5File containing all of the md5Codes, and the
-// second value in the array is the file with all the words and corresponding line number for the MD5 code.
-function reverseLookupMD5(md5, readers) {
-    Promise.all(readers).then((values) => {
-        let a_md5 = values[0].split(/\r?\n|\r|\n/g);
-        let a_w = values[1].split(/\r?\n|\r|\n/g);
-        for (let i = 0; i < a_md5.length; i++) {
-            if (a_md5[i] == md5) {
-                $('#word').val(a_w[i]);
-                $("#tmpgame").submit();
-                break
-            }
-        }
-    });
 }
