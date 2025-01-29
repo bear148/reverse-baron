@@ -65,10 +65,11 @@ async function findAllWords(wordList, dictionaryFile) {
         wordsByLength.get(len).set(word, dictionary[word]);
     }
     
-    // Faster lookup using length filter
+       // Faster lookup using length filter
     for (let md5 in wordList) {
         const len = wordList[md5].len;
         const possibleWords = wordsByLength.get(len);
+        let matched = false;
 
         if (possibleWords) {
             for (let [word, hash] of possibleWords) {
@@ -78,27 +79,19 @@ async function findAllWords(wordList, dictionaryFile) {
                     console.log(`Found word: ${word} | Hash: ${md5}`);
                     console.log(`Cracking progress: ${window.foundWords}/${window.totalWords}`);
                     console.log(`Word Length: ${len}`);
+                    matched = true;
                     break;
                 }
             }
         }
-    }
 
-    for (let md5 in wordList) {
-        for (let fMD5 of foundWords) {
-            if (md5 != fMD5) {
-                notFound.push(md5);
-            }
+        // If no match was found, add to notFound
+        if (!matched) {
+            notFound.push(md5);
         }
     }
 
     console.log(`Words not found: ${notFound}`);
-
-    // for (let [word, hash] of Object.keys(wordList)) {
-    //     for (let foundHash in foundWords) {
-    //         if ()
-    //     }
-    // }
     return foundWords;
 }
 
