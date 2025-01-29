@@ -1,9 +1,3 @@
-/**
-*
-*  MD5 (Message-Digest Algorithm)
-*  http://www.webtoolkit.info/
-*
-**/
 document.body.onload = buildGUI();
 
 function buildGUI() {
