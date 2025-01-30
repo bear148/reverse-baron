@@ -1,16 +1,21 @@
 document.body.onload = buildGUI();
 
+// Function that builds/add important HTML elements that allow us to both input the dictionary file and execute the find all words.
 function buildGUI() {
     console.log("Building GUI");
+
+    // Actual element creation process
     let submit = document.createElement("button");
     let files = document.createElement("input");
 
+    // Adding created elements to the game container
     document.getElementById("container_left").appendChild(submit);
     document.getElementById("container_left").appendChild(files);
 
     submit.innerText = "Fill in all Answers";
     files.innerText = "Dictionary File";
 
+    // Making sure the elements function properly by adding the correct attributes.
     submit.setAttribute("onclick", "insertAll(document.getElementById('dictionaryInput').files[0])");
 
     files.setAttribute("type", "file");
@@ -18,9 +23,11 @@ function buildGUI() {
 }
 
 function insertAll(file) {
+    // Get the uid of the current game.
     let uid = $('#form_id').val();
     console.log("Starting word lookup process...");
 
+    // Get request which pulls the board data. This is only used for the wordslist section.
     $.ajax({
         type: 'get',
         url: uid.length == 1 ? 'boarddata' + uid + '.php' : 'boarddata2022.php',
@@ -37,13 +44,17 @@ function insertAll(file) {
     });
 }
 
+// Beginning of word input process.
 function wordHandle(data, file) {
     let wordList = data.wordList;
     console.log(`Total words to find: ${Object.keys(wordList).length}`);
+
+    // Calculate how many words need to be found and decrypted.
     window.totalWords = Object.keys(wordList).length;
     window.foundWords = 0;
     window.submittedWords = 0;
 
+    // Decryption start point.
     findAllWords(wordList, file).then(foundWords => {
         console.log("All words found! Starting submission...");
         submitWords(foundWords);
@@ -70,6 +81,7 @@ async function findAllWords(wordList, dictionaryFile) {
         const len = wordList[md5].len;
         const possibleWords = wordsByLength.get(len);
 
+        // Checking if the hash exists in our dictionary, if not we add the missing MD5 hash to an array.
         if (possibleWords && possibleWords.has(md5)) {
             const word = possibleWords.get(md5);
             foundWords.set(md5, word);
@@ -82,16 +94,16 @@ async function findAllWords(wordList, dictionaryFile) {
         }
     }
 
-    console.log(`Words not found: ${[...notFound]}`);
+    console.log(`Words not found: ${[...notFound]}`); // Printing out said missing MD5 hash array.
     return foundWords;
 }
 
-
+// Submits all of the words.
 async function submitWords(foundWords) {
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms)); // Delay, not currently used but would be used to add a random delay inbetween each words input.
 
     for (let [md5, word] of foundWords) {
-        $('#word').val(word);
+        $('#word').val(word); // Setting the element of the webpage with the ID #word and then submitting it.
         $("#tmpgame").submit();
         window.submittedWords++;
         console.log(`Submitted: ${word}`);
@@ -102,6 +114,7 @@ async function submitWords(foundWords) {
     console.log("All words submitted!");
 }
 
+// Reads over a given file and returns the file data.
 function readFile(file) {
     return new Promise(function (resolve, reject) {
         let fr = new FileReader();
@@ -118,23 +131,10 @@ function readFile(file) {
     })
 }
 
-function reverseLookupMD5(md5, dictionaryFile) {
-    readFile(dictionaryFile).then((dictionary) => {
-        // Find the word by looking up the hash
-        for (let word in dictionary) {
-            if (dictionary[word] === md5) {
-                $('#word').val(word);
-                $("#tmpgame").submit();
-                window.foundWords++;
-                console.log(`Word: ${word} | Hash: ${md5}`);
-                console.log(`Progress: ${window.foundWords}/${window.totalWords} (${window.totalWords - window.foundWords} remaining)`);
-                break;
-            }
-        }
-    }).catch(err => {
-        console.error("Error reading dictionary:", err);
-    });
-}
+/*
+    THIS IS NOT OUR CODE, THIS IS COPIED FROM THE ORIGINAL MD5 FILE ON THE WORDTWIST WEBSITE AND IS REQUIRED FOR THE JAVASCRIPT TO RUN CORRECTLY ON THE WEBPAGE
+    We have really no clue what it does anyways except that it hashes a string .
+*/
 
 var MD5 = function (string) {
 
