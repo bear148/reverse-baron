@@ -14,5 +14,5 @@ javascript:(function() {fetch('https://raw.githubusercontent.com/bear148/reverse
 
 ## Typing.com Bookmarklet
 ```javascript
-javascript:(function() {fetch('https://raw.githubusercontent.com/bear148/reverse-baron/main/typing.com/auto-type.js').then(response => response.text()).then(scriptText => {let script = document.createElement('script');script.textContent = scriptText + '\nautoPlaceTents();';document.body.appendChild(script);}).catch(error => console.error('Failed to load script:', error));})();
+javascript:(function() {fetch('https://raw.githubusercontent.com/bear148/reverse-baron/main/typing.com/auto-type.js').then(response => response.text()).then(scriptText => {let script = document.createElement('script');script.textContent = scriptText + '\nautoTypeWords();';document.body.appendChild(script);}).catch(error => console.error('Failed to load script:', error));})();
 ```
